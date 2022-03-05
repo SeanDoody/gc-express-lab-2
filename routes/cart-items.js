@@ -2,78 +2,80 @@ const express = require('express');
 const cartItems = express.Router();
 const pool = require('../db/connection.js');
 
-// const cartArray = [
-//     { id: 1, product: 'tofu', price: 2.49, quantity: 4 },
-//     { id: 2, product: 'beer', price: 9.99, quantity: 1 },
-//     { id: 3, product: 'bread', price: 2.99, quantity: 2 },
-//     { id: 4, product: 'apple', price: 0.39, quantity: 10 },
-//     { id: 5, product: 'cucumber', price: 0.59, quantity: 3 },
-//     { id: 6, product: 'peanut butter', price: 3.99, quantity: 1 }
-// ];
+cartItems.get('/', (req, res) => {
 
-function getData(req, res, sql) {
+    let sql = 'SELECT * FROM shopping_cart';
+    let maxPrice = false;
+
+    if (req.query.maxPrice) {
+        maxPrice = true;
+        sql += ` WHERE price <= ${req.query.maxPrice}`;
+    }
+
+    if (req.query.prefix) {
+        if (maxPrice) {
+            sql += ' AND ';
+        } else {
+            sql += ' WHERE '
+        }
+        sql += `product LIKE '${req.query.prefix}%'`;
+    }
+
+    if (req.query.pageSize) {
+        sql += ` LIMIT ${req.query.pageSize}`;
+    }
+
     pool.query(sql).then(result => {
         res.json(result.rows);
     });
-}
 
-cartItems.get('/', (req, res) => {
-    let sql = 'SELECT * FROM shopping_cart';
-    if (req.query.maxPrice) {
-        sql += ' WHERE '
-    }
-    if (req.query.prefix) {
-        const prefix = req.query.prefix;
-        const prefixLen = prefix.length;
-    }
-    if (req.query.pageSize) {
-        
-    }
-    res.json(returnArray);
 });
 
 cartItems.get('/:id', (req, res) => {
-    const id = parseInt(req.params.id);
-    let foundItem;
-    for (let item of cartArray) {
-        if (item.id === id) {
-            foundItem = item;
-            break;
+
+    const sql = 'SELECT * FROM shopping_cart WHERE id = $1';
+
+    pool.query(sql, [req.params.id]).then(result => {
+        const data = result.rows;
+        if (Object.keys(data).length === 0) {
+            res.status(404).send('ID Not Found');
+        } else {
+            res.json(data);
         }
-    }
-    if (foundItem === undefined) {
-        res.status(404).send('ID Not Found');
-    } else {
-        res.json(foundItem);
-    }
+    });
+
 });
 
 cartItems.post('/', (req, res) => {
-    const newId = cartArray[cartArray.length - 1].id + 1;
-    const newItem = {
-        id: newId,
-        product: req.body.product,
-        price: req.body.price,
-        quantity: req.body.quantity
-    };
-    cartArray.push(newItem);
-    res.status(201).send(newItem);
+
+    let sql = 'INSERT INTO shopping_cart (product, price, quantity) ';
+    sql += 'VALUES ($1, $2, $3) RETURNING *';
+
+    pool.query(sql, [req.body.product, req.body.price, req.body.quantity]).then(result => {
+        res.status(201).send(result.rows[0]);
+    });
+
 });
 
 cartItems.put('/:id', (req, res) => {
-    const id = parseInt(req.params.id);
-    const index = cartArray.findIndex(item => item.id === id);
-    cartArray[index].product = req.body.product;
-    cartArray[index].price = req.body.price;
-    cartArray[index].quantity = req.body.quantity;
-    res.status(200).send(cartArray[index]);
+
+    let sql = 'UPDATE shopping_cart SET product = $1, price = $2, ';
+    sql += 'quantity = $3 WHERE id = $4 RETURNING *';
+
+    pool.query(sql, [req.body.product, req.body.price, req.body.quantity, req.params.id]).then(result => {
+        res.json(result.rows[0]);
+    });
+
 });
 
 cartItems.delete('/:id', (req, res) => {
-    const id = parseInt(req.params.id);
-    const index = cartArray.findIndex(item => item.id === id);
-    cartArray.splice(index, 1);
-    res.sendStatus(204);
+
+    let sql = 'DELETE FROM shopping_cart WHERE id = $1';
+
+    pool.query(sql, [req.params.id]).then(result => {
+        res.sendStatus(204);
+    });
+
 });
 
 module.exports = cartItems;
