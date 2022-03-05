@@ -1,27 +1,33 @@
 const express = require('express');
 const cartItems = express.Router();
+const pool = require('../db/connection.js');
 
-const cartArray = [
-    { id: 1, product: 'tofu', price: 2.49, quantity: 4 },
-    { id: 2, product: 'beer', price: 9.99, quantity: 1 },
-    { id: 3, product: 'bread', price: 2.99, quantity: 2 },
-    { id: 4, product: 'apple', price: 0.39, quantity: 10 },
-    { id: 5, product: 'cucumber', price: 0.59, quantity: 3 },
-    { id: 6, product: 'peanut butter', price: 3.99, quantity: 1 }
-];
+// const cartArray = [
+//     { id: 1, product: 'tofu', price: 2.49, quantity: 4 },
+//     { id: 2, product: 'beer', price: 9.99, quantity: 1 },
+//     { id: 3, product: 'bread', price: 2.99, quantity: 2 },
+//     { id: 4, product: 'apple', price: 0.39, quantity: 10 },
+//     { id: 5, product: 'cucumber', price: 0.59, quantity: 3 },
+//     { id: 6, product: 'peanut butter', price: 3.99, quantity: 1 }
+// ];
+
+function getData(req, res, sql) {
+    pool.query(sql).then(result => {
+        res.json(result.rows);
+    });
+}
 
 cartItems.get('/', (req, res) => {
-    let returnArray = cartArray;
+    let sql = 'SELECT * FROM shopping_cart';
     if (req.query.maxPrice) {
-        returnArray = returnArray.filter(item => item.price <= req.query.maxPrice);
+        sql += ' WHERE '
     }
     if (req.query.prefix) {
         const prefix = req.query.prefix;
         const prefixLen = prefix.length;
-        returnArray = returnArray.filter(item => item.product.substring(0, prefixLen) === prefix);
     }
     if (req.query.pageSize) {
-        returnArray = returnArray.slice(0, req.query.pageSize);
+        
     }
     res.json(returnArray);
 });

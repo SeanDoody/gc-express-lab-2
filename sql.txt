@@ -1,0 +1,21 @@
+DELETE FROM shopping_cart;
+
+INSERT INTO shopping_cart (product, price, quantity)
+VALUES ('tofu', 2.49, 4);
+
+INSERT INTO shopping_cart (product, price, quantity)
+VALUES ('beer', 9.99, 1);
+
+INSERT INTO shopping_cart (product, price, quantity)
+VALUES ('bread', 2.49, 2);
+
+INSERT INTO shopping_cart (product, price, quantity)
+VALUES ('apple', 0.39, 10);
+
+INSERT INTO shopping_cart (product, price, quantity)
+VALUES ('cucumber', 0.59, 3);
+
+INSERT INTO shopping_cart (product, price, quantity)
+VALUES ('peanut butter', 3.99, 1);
+
+SELECT * FROM shopping_cart;
