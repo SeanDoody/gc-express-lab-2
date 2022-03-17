@@ -20,6 +20,7 @@ cartItems.get('/', (req, res) => {
     if (req.query.pageSize) {
         sql += ` LIMIT ${req.query.pageSize}`;
     }
+    sql += ' ORDER BY id';
     pool.query(sql).then(result => {
         res.json(result.rows);
     });
