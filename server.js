@@ -8,5 +8,6 @@ app.use(cors());
 app.use('/cart-items', cartItems);
 app.use(express.static(__dirname + '/public'));
 
-const port = 3000;
+console.log(process.env);
+const port = process.env.PORT || 3000;
 app.listen(port, () => console.log(`listening on port ${port}`));
